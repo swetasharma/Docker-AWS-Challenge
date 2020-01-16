@@ -1,40 +1,45 @@
-version: "3.2"
+version: "3"
 services:
-  mongodb:
-    image: "mongo:4.1.13-bionic"
-    container_name: "my-mongo-container"
-    environment:
-      - MONGO_INITDB_DATABASE=nginx_logs
-      - MONGO_INITDB_ROOT_USERNAME=sweta
-      - MONGO_INITDB_ROOT_PASSWORD=sweta
-    volumes:
-      - "./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo-js:ro"
-      - "mongo:/data/db"
+  mongo:
+    build:
+      context: ./mongodb/docker
+    image: 225517/mongo:3.2
+    container_name: mongo-withhealthcheck
+    restart: unless-stopped
     ports:
-      - "27017:27017"
+      - 27017:27017
+    volumes:
+      - "mongo:/data/db"
     networks:
       - logging-net
 
   fluentd:
-    image: fluent/fluentd
+    build:
+      context: ./fluentd/docker
+    image: 225517/fluentd
+    container_name: fluentd-withhealthcheck
+    restart: unless-stopped
     ports:
-      - "24224:24224"
+      - 24224:24224
     networks:
       - logging-net
+    environment:
+      MONGO_URL: "mongodb://mongo:27017/nginx_logs"
+      MONGO_OPLOG_URL: "mongodb://mongo:27017/local"
+      MAIL_URL: "smtp://smtp.email"
     depends_on:
-      - "mongodb"
-    volumes:
-      - ./fluentd/etc:/fluentd/etc
+      - "mongo"
 
   nginx:
-    image: nginx
+    build:
+      context: ./nginx/docker
+    image: 225517/nginx:mainline
+    container_name: nginx-withhealthcheck
+    restart: unless-stopped
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       - logging-net
-    volumes:
-      - ./usr/share/nginx/html:/usr/share/nginx/html
-      - ./etc/nginx/conf.d:/etc/nginx/conf.d
     logging:
       driver: fluentd
       options:

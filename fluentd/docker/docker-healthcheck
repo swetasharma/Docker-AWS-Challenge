@@ -1,0 +1,1 @@
+--interval=5s --timeout=2s --retries=12 CMD curl --silent --fail localhost:8080 || exit 1
