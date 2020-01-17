@@ -1,1 +1,7 @@
---interval=5s --timeout=2s --retries=12 CMD curl --silent --fail localhost:8080 || exit 1
+#!/bin/bash
+
+if service fluentd status; then
+    exit 0
+else
+    exit 1
+fi
