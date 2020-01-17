@@ -41,7 +41,7 @@ services:
       driver: fluentd
       options:
         fluentd-address: localhost:24224
-        tag: docker.nginx
+        tag: nginx.access
     depends_on:
       - "fluentd"
 
